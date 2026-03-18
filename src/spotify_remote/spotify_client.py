@@ -58,13 +58,16 @@ class SpotifyClient:
         self._sp = spotipy.Spotify(auth_manager=auth)
 
     def get_saved_shows(self, limit: int = 50) -> list[Show]:
-        """Return the user's saved podcast shows."""
+        """Return the user's saved podcast shows, excluding audiobooks."""
+        audiobook_ids = {
+            ab["id"]
+            for ab in self._sp.current_user_saved_audiobooks(limit=50).get("items", [])
+        }
         results = self._sp.current_user_saved_shows(limit=limit)
         shows = []
         for item in results["items"]:
             s = item["show"]
-            print(f"[shows] {s['name']!r:40} type={s.get('type')!r} media_type={s.get('media_type')!r}")
-            if s.get("type") != "show":
+            if s["id"] in audiobook_ids:
                 continue
             shows.append(Show(
                 id=s["id"],
