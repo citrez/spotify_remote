@@ -20,7 +20,6 @@ class Display:
 
     def render(self, image: Image.Image):
         """Push a 264×176 PIL image to the display (or save as preview.png)."""
-        # Ensure correct size and mode
         image = image.convert("1").resize(
             (config.DISPLAY_WIDTH, config.DISPLAY_HEIGHT)
         )
@@ -29,7 +28,10 @@ class Display:
             image.save("preview.png")
             print("[mock] Rendered to preview.png")
         else:
-            self._epd.display(image.tobytes())
+            # The EPD panel RAM is laid out in portrait (176×264).
+            # Rotate landscape→portrait before packing bytes.
+            portrait = image.rotate(90, expand=True)
+            self._epd.display(portrait.tobytes())
 
     def clear(self):
         if config.MOCK_DISPLAY:
