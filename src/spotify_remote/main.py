@@ -15,7 +15,7 @@ from typing import Optional
 
 from .buttons import BACK, DOWN, SELECT, UP, ButtonHandler
 from .display import Display
-from .spotify_client import Episode, PlaybackState, Show, SpotifyClient
+from .spotify_client import Episode, NoActiveDeviceError, PlaybackState, Show, SpotifyClient
 from .ui import Screen, render_episodes, render_loading, render_player, render_shows
 
 PLAYER_REFRESH_INTERVAL = 10  # seconds
@@ -141,7 +141,13 @@ class App:
         self._render()
 
         def play():
-            self._spotify.play_episode(episode.id)
+            try:
+                self._spotify.play_episode(episode.id)
+            except NoActiveDeviceError:
+                with self._lock:
+                    s.screen = Screen.EPISODES
+                    self._display.render(render_loading("Open Spotify on your\nphone first, then\npress SELECT again."))
+                return
             time.sleep(1)  # brief pause for Spotify to register the play
             self._refresh_player()
 

@@ -15,6 +15,10 @@ SCOPES = [
 ]
 
 
+class NoActiveDeviceError(Exception):
+    """Raised when no Spotify device is currently open."""
+
+
 @dataclass
 class Show:
     id: str
@@ -84,17 +88,20 @@ class SpotifyClient:
             ))
         return episodes
 
-    def _get_device_id(self) -> Optional[str]:
-        """Return the active device ID, or the first available one if none is active."""
+    def get_active_device_id(self) -> Optional[str]:
+        """Return the active device ID, or None if Spotify isn't open anywhere."""
         devices = self._sp.devices().get("devices", [])
-        if not devices:
-            return None
         active = next((d for d in devices if d["is_active"]), None)
-        return (active or devices[0])["id"]
+        return active["id"] if active else None
 
     def play_episode(self, episode_id: str) -> None:
-        """Start playing an episode, transferring to a device if needed."""
-        device_id = self._get_device_id()
+        """Start playing an episode on the active device.
+
+        Raises NoActiveDeviceError if Spotify isn't open on any device.
+        """
+        device_id = self.get_active_device_id()
+        if device_id is None:
+            raise NoActiveDeviceError()
         self._sp.start_playback(
             device_id=device_id,
             uris=[f"spotify:episode:{episode_id}"],
@@ -104,9 +111,8 @@ class SpotifyClient:
         state = self._sp.current_playback()
         if state and state["is_playing"]:
             self._sp.pause_playback()
-        else:
-            device_id = self._get_device_id()
-            self._sp.start_playback(device_id=device_id)
+        elif state:
+            self._sp.start_playback()
 
     def get_playback_state(self) -> Optional[PlaybackState]:
         state = self._sp.current_playback()
