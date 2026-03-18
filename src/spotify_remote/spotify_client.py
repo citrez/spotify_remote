@@ -63,7 +63,7 @@ class SpotifyClient:
         shows = []
         for item in results["items"]:
             s = item["show"]
-            if s.get("media_type") == "audiobook":
+            if s.get("type") != "show":
                 continue
             shows.append(Show(
                 id=s["id"],
@@ -116,7 +116,7 @@ class SpotifyClient:
             self._sp.start_playback(device_id=devices[0]["id"], **kwargs)
 
     def toggle_playback(self) -> None:
-        state = self._sp.current_playback()
+        state = self._sp.current_playback(additional_types=["episode"])
         if state and state["is_playing"]:
             self._sp.pause_playback()
         elif state:
@@ -129,7 +129,7 @@ class SpotifyClient:
         self._sp.previous_track()
 
     def get_playback_state(self) -> Optional[PlaybackState]:
-        state = self._sp.current_playback()
+        state = self._sp.current_playback(additional_types=["episode"])
         if not state or not state.get("item"):
             return None
         item = state["item"]
