@@ -61,7 +61,7 @@ class SpotifyClient:
         """Return the user's saved podcast shows, excluding audiobooks."""
         audiobook_ids = {
             ab["id"]
-            for ab in self._sp.current_user_saved_audiobooks(limit=50).get("items", [])
+            for ab in self._sp._get("me/audiobooks", limit=50).get("items", [])
         }
         results = self._sp.current_user_saved_shows(limit=limit)
         shows = []
