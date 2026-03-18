@@ -88,24 +88,24 @@ class SpotifyClient:
             ))
         return episodes
 
-    def get_active_device_id(self) -> Optional[str]:
-        """Return the active device ID, or None if Spotify isn't open anywhere."""
+    def has_active_device(self) -> bool:
+        """Return True if Spotify is open and active on any device."""
         devices = self._sp.devices().get("devices", [])
-        active = next((d for d in devices if d["is_active"]), None)
-        return active["id"] if active else None
+        return any(d["is_active"] for d in devices)
 
     def play_episode(self, episode_id: str) -> None:
         """Start playing an episode on the active device.
 
+        Does NOT pass device_id to start_playback — letting Spotify route to
+        the active device itself avoids crashes on mobile caused by explicit
+        device targeting of podcast episode URIs.
+
         Raises NoActiveDeviceError if Spotify isn't open on any device.
         """
-        device_id = self.get_active_device_id()
-        if device_id is None:
+        if not self.has_active_device():
             raise NoActiveDeviceError()
-        self._sp.start_playback(
-            device_id=device_id,
-            uris=[f"spotify:episode:{episode_id}"],
-        )
+        # No device_id — Spotify routes to active device internally
+        self._sp.start_playback(uris=[f"spotify:episode:{episode_id}"])
 
     def toggle_playback(self) -> None:
         state = self._sp.current_playback()

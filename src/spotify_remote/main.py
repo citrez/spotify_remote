@@ -15,6 +15,7 @@ from typing import Optional
 
 from .buttons import BACK, DOWN, SELECT, UP, ButtonHandler
 from .display import Display
+from spotipy.exceptions import SpotifyException
 from .spotify_client import Episode, NoActiveDeviceError, PlaybackState, Show, SpotifyClient
 from .ui import Screen, render_episodes, render_loading, render_player, render_shows
 
@@ -146,7 +147,14 @@ class App:
             except NoActiveDeviceError:
                 with self._lock:
                     s.screen = Screen.EPISODES
-                    self._display.render(render_loading("Open Spotify on your\nphone first, then\npress SELECT again."))
+                    self._display.render(render_loading("Open Spotify on\nyour phone first"))
+                return
+            except SpotifyException as e:
+                # Show the actual Spotify error so we can diagnose it
+                msg = str(e).split("\n")[0][:60]
+                with self._lock:
+                    s.screen = Screen.EPISODES
+                    self._display.render(render_loading(f"Spotify error:\n{msg}"))
                 return
             time.sleep(1)  # brief pause for Spotify to register the play
             self._refresh_player()
