@@ -1,12 +1,16 @@
 """
 GPIO button handler for the Seengreat/Waveshare 2.7" HAT.
 
-Four buttons fire callbacks via interrupt (no polling).
-In mock mode (MOCK_DISPLAY=true) the GPIO setup is skipped entirely —
-buttons can be simulated by calling the action callbacks directly.
+Uses a polling loop in a background thread — more reliable than edge-detection
+interrupts on newer Raspberry Pi OS kernels.
+
+In mock mode (MOCK_DISPLAY=true) GPIO setup is skipped entirely.
 """
 
+import threading
+import time
 from typing import Callable
+
 from . import config
 
 # Action constants
@@ -22,35 +26,51 @@ _PIN_TO_ACTION = {
     config.BTN_BACK: BACK,
 }
 
+_POLL_INTERVAL = 0.05   # seconds between reads
+_DEBOUNCE_READS = 3     # consecutive LOW reads required to register a press
+
 
 class ButtonHandler:
     def __init__(self, on_action: Callable[[str], None]):
         self._on_action = on_action
+        self._running = False
 
         if config.MOCK_DISPLAY:
-            return  # no GPIO in mock/dev mode
+            return
 
         import RPi.GPIO as GPIO
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
-
         for pin in _PIN_TO_ACTION:
             GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.remove_event_detect(pin)  # clear any leftover state from previous runs
-            GPIO.add_event_detect(
-                pin,
-                GPIO.FALLING,
-                callback=self._gpio_callback,
-                bouncetime=300,  # ms debounce
-            )
 
-    def _gpio_callback(self, pin: int):
-        action = _PIN_TO_ACTION.get(pin)
-        if action:
-            self._on_action(action)
+        self._running = True
+        self._thread = threading.Thread(target=self._poll_loop, daemon=True)
+        self._thread.start()
+
+    def _poll_loop(self):
+        import RPi.GPIO as GPIO
+
+        # Track how many consecutive LOW reads each pin has seen
+        counts = {pin: 0 for pin in _PIN_TO_ACTION}
+        # Track whether the button is currently considered "held"
+        held = {pin: False for pin in _PIN_TO_ACTION}
+
+        while self._running:
+            for pin, action in _PIN_TO_ACTION.items():
+                if GPIO.input(pin) == GPIO.LOW:
+                    counts[pin] += 1
+                    if counts[pin] == _DEBOUNCE_READS and not held[pin]:
+                        held[pin] = True
+                        self._on_action(action)
+                else:
+                    counts[pin] = 0
+                    held[pin] = False
+            time.sleep(_POLL_INTERVAL)
 
     def cleanup(self):
+        self._running = False
         if not config.MOCK_DISPLAY:
             import RPi.GPIO as GPIO
             GPIO.cleanup()
