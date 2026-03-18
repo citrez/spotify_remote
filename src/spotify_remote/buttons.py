@@ -37,6 +37,7 @@ class ButtonHandler:
 
         for pin in _PIN_TO_ACTION:
             GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.remove_event_detect(pin)  # clear any leftover state from previous runs
             GPIO.add_event_detect(
                 pin,
                 GPIO.FALLING,
