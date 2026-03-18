@@ -63,6 +63,8 @@ class SpotifyClient:
         shows = []
         for item in results["items"]:
             s = item["show"]
+            if s.get("media_type") == "audiobook":
+                continue
             shows.append(Show(
                 id=s["id"],
                 name=s["name"],
