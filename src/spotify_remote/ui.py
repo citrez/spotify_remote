@@ -8,6 +8,7 @@ Every render_* function takes the current app state and returns a PIL Image
 import textwrap
 from dataclasses import dataclass
 from enum import Enum, auto
+from pathlib import Path
 from typing import Optional
 
 from PIL import Image, ImageDraw, ImageFont
@@ -88,6 +89,17 @@ def _format_date(date_str: str) -> str:
 
 
 # ── Screen renderers ──────────────────────────────────────────────────────────
+
+_SPLASH_PATH = Path(__file__).parent / "assets" / "splash_converted.png"
+
+
+def render_splash() -> Image.Image:
+    """Load the pre-converted 1-bit splash image, or fall back to a blank screen."""
+    if _SPLASH_PATH.exists():
+        return Image.open(_SPLASH_PATH).convert("1")
+    img = Image.new("1", (W, H), 1)
+    return img
+
 
 def render_loading(message: str = "Loading…") -> Image.Image:
     img, draw = _new_canvas()
@@ -288,6 +300,7 @@ def _draw_scrollbar(
 # ── Screen enum (used by main) ────────────────────────────────────────────────
 
 class Screen(Enum):
+    SPLASH = auto()
     LOADING = auto()
     SHOWS = auto()
     EPISODES = auto()

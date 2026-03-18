@@ -17,7 +17,7 @@ from .buttons import BACK, DOWN, SELECT, UP, ButtonHandler
 from .display import Display
 from spotipy.exceptions import SpotifyException
 from .spotify_client import Episode, NoActiveDeviceError, PlaybackState, Show, SpotifyClient
-from .ui import Screen, render_episodes, render_loading, render_player, render_shows
+from .ui import Screen, render_episodes, render_loading, render_player, render_shows, render_splash
 
 PLAYER_REFRESH_INTERVAL = 10  # seconds
 
@@ -46,7 +46,9 @@ class App:
 
     def _render(self):
         s = self._state
-        if s.screen == Screen.LOADING:
+        if s.screen == Screen.SPLASH:
+            img = render_splash()
+        elif s.screen == Screen.LOADING:
             img = render_loading()
         elif s.screen == Screen.SHOWS:
             img = render_shows(s.shows, s.cursor, s.scroll_offset)
@@ -221,6 +223,11 @@ class App:
 
     # ── Startup ───────────────────────────────────────────────────────────────
 
+    def _show_splash(self, duration: float = 3.0):
+        self._state.screen = Screen.SPLASH
+        self._render()
+        time.sleep(duration)
+
     def _load_shows(self):
         self._state.screen = Screen.LOADING
         self._render()
@@ -242,6 +249,7 @@ class App:
         signal.signal(signal.SIGTERM, shutdown)
 
         try:
+            self._show_splash()
             self._load_shows()
             # Main thread just keeps the process alive; all work is event-driven
             while self._running:
