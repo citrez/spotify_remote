@@ -84,16 +84,29 @@ class SpotifyClient:
             ))
         return episodes
 
+    def _get_device_id(self) -> Optional[str]:
+        """Return the active device ID, or the first available one if none is active."""
+        devices = self._sp.devices().get("devices", [])
+        if not devices:
+            return None
+        active = next((d for d in devices if d["is_active"]), None)
+        return (active or devices[0])["id"]
+
     def play_episode(self, episode_id: str) -> None:
-        """Start playing an episode on the active device."""
-        self._sp.start_playback(uris=[f"spotify:episode:{episode_id}"])
+        """Start playing an episode, transferring to a device if needed."""
+        device_id = self._get_device_id()
+        self._sp.start_playback(
+            device_id=device_id,
+            uris=[f"spotify:episode:{episode_id}"],
+        )
 
     def toggle_playback(self) -> None:
         state = self._sp.current_playback()
         if state and state["is_playing"]:
             self._sp.pause_playback()
         else:
-            self._sp.start_playback()
+            device_id = self._get_device_id()
+            self._sp.start_playback(device_id=device_id)
 
     def get_playback_state(self) -> Optional[PlaybackState]:
         state = self._sp.current_playback()
