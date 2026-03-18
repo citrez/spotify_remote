@@ -161,45 +161,80 @@ def render_episodes(
     return img
 
 
+CTRL_H = 42   # height of the controls bar at the bottom of the player screen
+
+
+def _draw_player_controls(draw: ImageDraw.ImageDraw, is_playing: bool):
+    """Draw a 3-button control row across the bottom CTRL_H pixels of the screen."""
+    ctrl_y = H - CTRL_H
+    draw.line([(0, ctrl_y - 1), (W - 1, ctrl_y - 1)], fill=0)
+
+    section_w = W // 3  # 88 px each
+
+    play_icon = "⏸" if is_playing else "▶"
+    play_label = "Pause" if is_playing else "Play"
+    sections = [
+        ("◀", "Prev"),
+        (play_icon, play_label),
+        ("▶", "Next"),
+    ]
+
+    for i, (icon, label) in enumerate(sections):
+        x_start = i * section_w
+        x_center = x_start + section_w // 2
+
+        if i > 0:
+            draw.line([(x_start, ctrl_y), (x_start, H - 1)], fill=0)
+
+        icon_bbox = draw.textbbox((0, 0), icon, font=FONT_BODY)
+        icon_w = icon_bbox[2] - icon_bbox[0]
+        draw.text((x_center - icon_w // 2, ctrl_y + 4), icon, font=FONT_BODY, fill=0)
+
+        label_bbox = draw.textbbox((0, 0), label, font=FONT_SMALL)
+        label_w = label_bbox[2] - label_bbox[0]
+        draw.text((x_center - label_w // 2, ctrl_y + 22), label, font=FONT_SMALL, fill=0)
+
+
 def render_player(playback: Optional[PlaybackState]) -> Image.Image:
     img, draw = _new_canvas()
 
     if playback is None:
-        _title_bar(draw, "Player")
+        _title_bar(draw, "Now Playing")
         draw.text((PADDING, 50), "No active playback.", font=FONT_BODY, fill=0)
         draw.text((PADDING, 68), "Start playing on a Spotify", font=FONT_SMALL, fill=0)
         draw.text((PADDING, 82), "device, then press SELECT.", font=FONT_SMALL, fill=0)
         return img
 
-    # Title bar: play/pause indicator
+    _title_bar(draw, "Now Playing")
+
+    # Status line
     status = "▶  Playing" if playback.is_playing else "⏸  Paused"
-    _title_bar(draw, status)
+    draw.text((PADDING, TITLE_H + 4), status, font=FONT_SMALL, fill=0)
 
     # Show name
     show = _truncate(playback.show_name, FONT_BODY, W - PADDING * 2)
-    draw.text((PADDING, TITLE_H + 6), show, font=FONT_BODY, fill=0)
+    draw.text((PADDING, TITLE_H + 18), show, font=FONT_BODY, fill=0)
 
     # Episode name (may wrap to 2 lines)
     ep_max_w = W - PADDING * 2
     ep_text = playback.episode_name
     if FONT_BODY.getlength(ep_text) > ep_max_w:
-        # wrap to 2 lines
         chars_per_line = int(ep_max_w / (FONT_BODY.getlength(ep_text) / len(ep_text)))
         lines = textwrap.wrap(ep_text, chars_per_line)[:2]
         lines[-1] = _truncate(lines[-1], FONT_BODY, ep_max_w)
     else:
         lines = [ep_text]
 
-    y = TITLE_H + 24
+    y = TITLE_H + 36
     for line in lines:
         draw.text((PADDING, y), line, font=FONT_SMALL, fill=0)
-        y += 14
+        y += 13
 
-    # Progress bar
-    bar_y = H - 38
+    # Progress bar (sits just above the controls area)
+    bar_y = H - CTRL_H - 30
     elapsed = _format_duration(playback.progress_ms)
     total = _format_duration(playback.duration_ms)
-    draw.text((PADDING, bar_y - 2), f"{elapsed} / {total}", font=FONT_SMALL, fill=0)
+    draw.text((PADDING, bar_y), f"{elapsed} / {total}", font=FONT_SMALL, fill=0)
 
     bar_top = bar_y + 14
     bar_bot = bar_top + 10
@@ -212,7 +247,8 @@ def render_player(playback: Optional[PlaybackState]) -> Image.Image:
         if fill_w > 0:
             draw.rectangle([bar_left + 1, bar_top + 1, bar_left + 1 + fill_w, bar_bot - 1], fill=0)
 
-    draw.text((PADDING, bar_bot + 4), "SELECT = play/pause   BACK = episodes", font=FONT_SMALL, fill=0)
+    # Control buttons
+    _draw_player_controls(draw, playback.is_playing)
 
     return img
 

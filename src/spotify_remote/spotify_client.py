@@ -120,6 +120,12 @@ class SpotifyClient:
         elif state:
             self._sp.start_playback()
 
+    def next_track(self) -> None:
+        self._sp.next_track()
+
+    def previous_track(self) -> None:
+        self._sp.previous_track()
+
     def get_playback_state(self) -> Optional[PlaybackState]:
         state = self._sp.current_playback()
         if not state or not state.get("item"):
