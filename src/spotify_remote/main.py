@@ -143,7 +143,8 @@ class App:
 
         def play():
             try:
-                self._spotify.play_episode(episode.id)
+                show_id = s.shows[s.selected_show_index].id
+                self._spotify.play_episode(episode.id, show_id)
             except NoActiveDeviceError:
                 with self._lock:
                     s.screen = Screen.EPISODES

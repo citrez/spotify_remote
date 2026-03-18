@@ -88,14 +88,11 @@ class SpotifyClient:
             ))
         return episodes
 
-    def play_episode(self, episode_id: str) -> None:
-        """Start playing an episode.
+    def play_episode(self, episode_id: str, show_id: str) -> None:
+        """Start playing an episode via its show context.
 
-        - Active device (recently used): play without device_id so Spotify
-          routes internally — avoids mobile crashes from explicit targeting.
-        - Inactive device (Spotify open but idle): must pass device_id to
-          wake it up.
-        - No devices at all: raise NoActiveDeviceError.
+        Using context_uri + episode offset avoids a Spotify iOS crash that
+        occurs when sending episode URIs directly via start_playback uris=[].
         """
         devices = self._sp.devices().get("devices", [])
         print(f"[spotify] devices: {[(d['name'], d['type'], d['is_active']) for d in devices]}")
@@ -104,15 +101,17 @@ class SpotifyClient:
             raise NoActiveDeviceError()
 
         active = next((d for d in devices if d["is_active"]), None)
-        uri = f"spotify:episode:{episode_id}"
+        kwargs = dict(
+            context_uri=f"spotify:show:{show_id}",
+            offset={"uri": f"spotify:episode:{episode_id}"},
+        )
 
         if active:
             print(f"[spotify] playing on active device: {active['name']}")
-            self._sp.start_playback(uris=[uri])
+            self._sp.start_playback(**kwargs)
         else:
-            device_id = devices[0]["id"]
             print(f"[spotify] waking inactive device: {devices[0]['name']}")
-            self._sp.start_playback(device_id=device_id, uris=[uri])
+            self._sp.start_playback(device_id=devices[0]["id"], **kwargs)
 
     def toggle_playback(self) -> None:
         state = self._sp.current_playback()
