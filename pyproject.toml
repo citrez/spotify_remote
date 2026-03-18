@@ -1,0 +1,31 @@
+[project]
+name = "spotify-remote"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Ezra Citron",email = "ezracitron@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "spotipy>=2.24.0",
+    "Pillow>=11.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+pi = [
+    "RPi.GPIO>=0.7.1",
+    "spidev>=3.6",
+]
+
+[project.scripts]
+spotify-remote = "spotify_remote.main:main"
+
+[tool.poetry]
+packages = [{include = "spotify_remote", from = "src"}]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
