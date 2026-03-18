@@ -63,6 +63,7 @@ class SpotifyClient:
         shows = []
         for item in results["items"]:
             s = item["show"]
+            print(f"[shows] {s['name']!r:40} type={s.get('type')!r} media_type={s.get('media_type')!r}")
             if s.get("type") != "show":
                 continue
             shows.append(Show(
@@ -71,7 +72,7 @@ class SpotifyClient:
                 publisher=s["publisher"],
                 total_episodes=s["total_episodes"],
             ))
-        return shows
+        return shows[:3]
 
     def get_show_episodes(self, show_id: str, limit: int = 20) -> list[Episode]:
         """Return the most recent episodes for a show."""
