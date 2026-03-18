@@ -123,8 +123,15 @@ class SpotifyClient:
         state = self._sp.current_playback(additional_types=["episode"])
         if state and state["is_playing"]:
             self._sp.pause_playback()
-        elif state:
-            self._sp.start_playback()
+        else:
+            devices = self._sp.devices().get("devices", [])
+            if not devices:
+                raise NoActiveDeviceError()
+            active = next((d for d in devices if d["is_active"]), None)
+            if active:
+                self._sp.start_playback()
+            else:
+                self._sp.start_playback(device_id=devices[0]["id"])
 
     def next_track(self) -> None:
         self._sp.next_track()
