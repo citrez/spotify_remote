@@ -231,7 +231,7 @@ def render_player(playback: Optional[PlaybackState]) -> Image.Image:
         y += 13
 
     # Progress bar
-    bar_y = H - 44
+    bar_y = H - 58
     elapsed = _format_duration(playback.progress_ms)
     total = _format_duration(playback.duration_ms)
     draw.text((PADDING, bar_y), f"{elapsed} / {total}", font=FONT_SMALL, fill=0)
@@ -246,6 +246,21 @@ def render_player(playback: Optional[PlaybackState]) -> Image.Image:
         fill_w = int((bar_right - bar_left - 2) * playback.progress_ms / playback.duration_ms)
         if fill_w > 0:
             draw.rectangle([bar_left + 1, bar_top + 1, bar_left + 1 + fill_w, bar_bot - 1], fill=0)
+
+    # Play/Pause button
+    btn_y = H - 30
+    btn_h = 22
+    btn_w = 52
+    btn_x = W // 2 - btn_w // 2
+    draw.rectangle([btn_x, btn_y, btn_x + btn_w, btn_y + btn_h], outline=0)
+    icon = "⏸" if playback.is_playing else "▶"
+    icon_bbox = draw.textbbox((0, 0), icon, font=FONT_BODY)
+    icon_w = icon_bbox[2] - icon_bbox[0]
+    icon_h = icon_bbox[3] - icon_bbox[1]
+    draw.text(
+        (W // 2 - icon_w // 2, btn_y + btn_h // 2 - icon_h // 2),
+        icon, font=FONT_BODY, fill=0,
+    )
 
     return img
 
