@@ -75,7 +75,7 @@ class SpotifyClient:
                 publisher=s["publisher"],
                 total_episodes=s["total_episodes"],
             ))
-        return shows[:3]
+        return shows[:5]
 
     def get_show_episodes(self, show_id: str, limit: int = 20) -> list[Episode]:
         """Return the most recent episodes for a show."""
