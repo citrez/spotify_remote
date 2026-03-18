@@ -80,10 +80,7 @@ class App:
             elif s.screen == Screen.PLAYER:
                 if action == BACK:
                     self._cancel_player_refresh()
-                    s.screen = Screen.EPISODES
-                    s.cursor = 0
-                    s.scroll_offset = 0
-                    self._render()
+                    self._go_to_shows()
                 elif action == SELECT:
                     self._spotify.toggle_playback()
                     self._refresh_player()
