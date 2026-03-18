@@ -230,8 +230,8 @@ def render_player(playback: Optional[PlaybackState]) -> Image.Image:
         draw.text((PADDING, y), line, font=FONT_SMALL, fill=0)
         y += 13
 
-    # Progress bar (sits just above the controls area)
-    bar_y = H - CTRL_H - 30
+    # Progress bar
+    bar_y = H - 44
     elapsed = _format_duration(playback.progress_ms)
     total = _format_duration(playback.duration_ms)
     draw.text((PADDING, bar_y), f"{elapsed} / {total}", font=FONT_SMALL, fill=0)
@@ -246,9 +246,6 @@ def render_player(playback: Optional[PlaybackState]) -> Image.Image:
         fill_w = int((bar_right - bar_left - 2) * playback.progress_ms / playback.duration_ms)
         if fill_w > 0:
             draw.rectangle([bar_left + 1, bar_top + 1, bar_left + 1 + fill_w, bar_bot - 1], fill=0)
-
-    # Control buttons
-    _draw_player_controls(draw, playback.is_playing)
 
     return img
 

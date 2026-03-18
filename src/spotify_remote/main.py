@@ -84,10 +84,6 @@ class App:
                 elif action == SELECT:
                     self._spotify.toggle_playback()
                     self._refresh_player()
-                elif action == UP:
-                    self._skip_track("previous")
-                elif action == DOWN:
-                    self._skip_track("next")
 
     def _handle_list_action(self, action: str, total: int, on_select):
         s = self._state
