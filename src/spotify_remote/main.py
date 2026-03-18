@@ -87,6 +87,10 @@ class App:
                 elif action == SELECT:
                     self._spotify.toggle_playback()
                     self._refresh_player()
+                elif action == UP:
+                    self._skip_track("previous")
+                elif action == DOWN:
+                    self._skip_track("next")
 
     def _handle_list_action(self, action: str, total: int, on_select):
         s = self._state
@@ -161,12 +165,44 @@ class App:
                     s.screen = Screen.EPISODES
                     self._display.render(render_loading(f"Error:\n{type(e).__name__}\n{str(e)[:40]}"))
                 return
-            time.sleep(3)  # give Spotify time to start
-            self._refresh_player()
+            self._wait_for_playback()
 
         threading.Thread(target=play, daemon=True).start()
 
     # ── Player refresh ────────────────────────────────────────────────────────
+
+    def _skip_track(self, direction: str):
+        """Skip to the next or previous track, then refresh the player."""
+        self._cancel_player_refresh()
+
+        def skip():
+            try:
+                if direction == "next":
+                    self._spotify.next_track()
+                else:
+                    self._spotify.previous_track()
+            except Exception as e:
+                print(f"[skip] {direction} failed: {e}")
+            time.sleep(2)
+            self._refresh_player()
+
+        threading.Thread(target=skip, daemon=True).start()
+
+    def _wait_for_playback(self, retries: int = 8, interval: float = 2.0):
+        """Poll until Spotify reports active playback, then show the player."""
+        for attempt in range(retries):
+            time.sleep(interval)
+            playback = self._spotify.get_playback_state()
+            print(f"[player] attempt {attempt + 1}: {playback}")
+            if playback:
+                with self._lock:
+                    self._state.playback = playback
+                    self._state.screen = Screen.PLAYER
+                    self._render()
+                self._schedule_player_refresh()
+                return
+        # Timed out — show player anyway (will display no active playback)
+        self._refresh_player()
 
     def _refresh_player(self):
         playback = self._spotify.get_playback_state()
