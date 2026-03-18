@@ -26,6 +26,9 @@ spotify-remote = "spotify_remote.main:main"
 packages = [{include = "spotify_remote", from = "src"}]
 
 
+[tool.poetry.group.dev.dependencies]
+pillow = "^12.1.1"
+
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
