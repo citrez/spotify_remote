@@ -21,11 +21,11 @@ from .spotify_client import Episode, PlaybackState, Show
 W = config.DISPLAY_WIDTH   # 176
 H = config.DISPLAY_HEIGHT  # 264
 
-TITLE_H = 22        # height of the top title bar
+TITLE_H = 32        # height of the top title bar
 ROW_H = 28          # height of a show row
 EP_ROW_H = 38       # height of an episode row (name + subtitle)
-ROWS_VISIBLE = (H - TITLE_H) // ROW_H          # 8 show rows
-EP_ROWS_VISIBLE = (H - TITLE_H) // EP_ROW_H    # 6 episode rows
+ROWS_VISIBLE = (H - TITLE_H) // ROW_H          # 8 show rows (was 5)
+EP_ROWS_VISIBLE = (H - TITLE_H) // EP_ROW_H    # 6 episode rows (was 4)
 
 PADDING = 6
 
@@ -45,7 +45,7 @@ def _font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
     return ImageFont.load_default()
 
 
-FONT_TITLE = _font(13, bold=True)
+FONT_TITLE = _font(18, bold=True)
 FONT_BODY = _font(12)
 FONT_SMALL = _font(10)
 
@@ -59,7 +59,10 @@ def _new_canvas() -> tuple[Image.Image, ImageDraw.ImageDraw]:
 
 def _title_bar(draw: ImageDraw.ImageDraw, text: str):
     draw.rectangle([0, 0, W - 1, TITLE_H - 1], fill=0)
-    draw.text((PADDING, 4), text, font=FONT_TITLE, fill=1)
+    bbox = draw.textbbox((0, 0), text, font=FONT_TITLE)
+    text_w = bbox[2] - bbox[0]
+    text_h = bbox[3] - bbox[1]
+    draw.text(((W - text_w) // 2, (TITLE_H - text_h) // 2), text, font=FONT_TITLE, fill=1)
 
 
 def _truncate(text: str, font: ImageFont.FreeTypeFont, max_width: int) -> str:
