@@ -10,9 +10,9 @@ SPOTIFY_REDIRECT_URI = os.getenv("SPOTIFY_REDIRECT_URI", "http://127.0.0.1:8888/
 
 CACHE_PATH = Path(os.getenv("SPOTIFY_CACHE_PATH", str(Path.home() / ".spotify_remote_cache")))
 
-# Seengreat 2.7" display — 264x176 landscape
-DISPLAY_WIDTH = 264
-DISPLAY_HEIGHT = 176
+# Seengreat 2.7" display — 176x264 portrait
+DISPLAY_WIDTH = 176
+DISPLAY_HEIGHT = 264
 
 # GPIO pin numbers (BCM) for Waveshare/Seengreat 2.7" HAT buttons
 BTN_UP = 5

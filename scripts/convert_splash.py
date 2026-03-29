@@ -1,5 +1,5 @@
 """
-Convert assets/splash.png to a 264x176 1-bit dithered image.
+Convert assets/splash.png to a 176x264 1-bit dithered image.
 
 Saves a preview as assets/splash_preview.png (greyscale, easy to view on a Mac)
 and assets/splash_converted.png (the actual 1-bit image used by the display).
@@ -16,13 +16,13 @@ SRC = ASSETS / "splash.png"
 OUT_1BIT = ASSETS / "splash_converted.png"
 OUT_PREVIEW = ASSETS / "splash_preview.png"
 
-W, H = 264, 176
+W, H = 176, 264
 
 
 def convert():
     img = Image.open(SRC).convert("RGB")
 
-    # Fit inside 264x176, preserving aspect ratio, centred on white background
+    # Fit inside 176x264, preserving aspect ratio, centred on white background
     img.thumbnail((W, H), Image.LANCZOS)
     canvas = Image.new("RGB", (W, H), (255, 255, 255))
     x = (W - img.width) // 2

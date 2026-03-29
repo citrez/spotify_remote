@@ -18,9 +18,48 @@ Playback happens on your phone, speaker, or any active Spotify device. The Pi ju
 
 ## Screens
 
-**Shows** — browse your saved podcasts
-**Episodes** — pick from the 20 most recent episodes
-**Now Playing** — see what's playing, track progress, and control playback
+### Splash
+
+Displays the application logo on startup for 3 seconds, then automatically transitions to the Shows screen.
+
+### Shows
+
+Browse your saved Spotify podcasts (up to 50, audiobooks excluded). Shows up to 5 rows at a time with a scrollbar when the list is longer. The selected row is highlighted with inverted colors.
+
+```
+┌─────────────────────────────────────┐
+│  Podcasts                           │  ← title bar
+├─────────────────────────────────────┤
+│  Hardcore History                   │
+│  ▶ The Daily                        │  ← selected
+│  Huberman Lab                       │
+│  Lex Fridman Podcast                │
+│  Radiolab                           │
+└─────────────────────────────────────┘
+```
+
+### Episodes
+
+Lists the 20 most recent episodes for the selected podcast. Shows up to 4 rows at a time. Each row displays the episode name (up to 2 lines) plus the release date and duration.
+
+```
+┌─────────────────────────────────────┐
+│  Hardcore History                   │  ← show name
+├─────────────────────────────────────┤
+│  Ep 67 - Supernova in the East      │
+│  Mar 15  ·  6h 04m                  │
+├─────────────────────────────────────┤
+│  ▶ Ep 66 - Celtic Holocaust         │  ← selected
+│  Jan 02  ·  5h 41m                  │
+├─────────────────────────────────────┤
+│  Ep 65 - The Destroyer of Worlds    │
+│  Nov 20  ·  3h 58m                  │
+└─────────────────────────────────────┘
+```
+
+### Now Playing
+
+Shows the currently playing episode with playback controls and progress. Auto-refreshes every 10 seconds. If no device is active, displays a message prompting you to start playback on a Spotify device.
 
 ```
 ┌─────────────────────────────────────┐
@@ -36,6 +75,10 @@ Playback happens on your phone, speaker, or any active Spotify device. The Pi ju
 │     Prev     │  Pause   │   Next    │
 └──────────────┴──────────┴───────────┘
 ```
+
+### Loading
+
+A transient screen with centered text (e.g. "Loading…") shown while fetching data from the Spotify API.
 
 ---
 
@@ -98,6 +141,10 @@ The app prints an auth URL. Open it on your phone or laptop, authorize, then pas
 ---
 
 ## Updating
+
+The run loop script (`scripts/run_loop.sh`) automatically checks for remote updates every 30 seconds. When a new commit is detected on `main`, it pulls the latest code and restarts the app — no manual intervention needed.
+
+To update manually instead:
 
 ```bash
 cd ~/spotify_remote

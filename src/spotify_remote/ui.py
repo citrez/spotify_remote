@@ -2,7 +2,7 @@
 PIL-based renderer for all screens.
 
 Every render_* function takes the current app state and returns a PIL Image
-(264×176, mode "1" — 1-bit black/white) ready to be pushed to the display.
+(176×264, mode "1" — 1-bit black/white) ready to be pushed to the display.
 """
 
 import textwrap
@@ -18,14 +18,14 @@ from .spotify_client import Episode, PlaybackState, Show
 
 # ── Layout constants ──────────────────────────────────────────────────────────
 
-W = config.DISPLAY_WIDTH   # 264
-H = config.DISPLAY_HEIGHT  # 176
+W = config.DISPLAY_WIDTH   # 176
+H = config.DISPLAY_HEIGHT  # 264
 
 TITLE_H = 22        # height of the top title bar
 ROW_H = 28          # height of a show row
 EP_ROW_H = 38       # height of an episode row (name + subtitle)
-ROWS_VISIBLE = (H - TITLE_H) // ROW_H          # 5 show rows
-EP_ROWS_VISIBLE = (H - TITLE_H) // EP_ROW_H    # 4 episode rows
+ROWS_VISIBLE = (H - TITLE_H) // ROW_H          # 8 show rows
+EP_ROWS_VISIBLE = (H - TITLE_H) // EP_ROW_H    # 6 episode rows
 
 PADDING = 6
 
@@ -181,7 +181,7 @@ def _draw_player_controls(draw: ImageDraw.ImageDraw, is_playing: bool):
     ctrl_y = H - CTRL_H
     draw.line([(0, ctrl_y - 1), (W - 1, ctrl_y - 1)], fill=0)
 
-    section_w = W // 3  # 88 px each
+    section_w = W // 3  # ~58 px each
 
     play_icon = "⏸" if is_playing else "▶"
     play_label = "Pause" if is_playing else "Play"
