@@ -49,7 +49,8 @@ FONT_TITLE = _font(18, bold=True)
 FONT_BODY = _font(12)
 FONT_SMALL = _font(10)
 
-CURSOR_INDENT = int(FONT_BODY.getlength("▸ "))
+CURSOR_SIZE = 6       # side length of the triangle cursor
+CURSOR_INDENT = CURSOR_SIZE + 6  # space reserved for cursor + gap
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -57,6 +58,16 @@ CURSOR_INDENT = int(FONT_BODY.getlength("▸ "))
 def _new_canvas() -> tuple[Image.Image, ImageDraw.ImageDraw]:
     img = Image.new("1", (W, H), 1)   # white
     return img, ImageDraw.Draw(img)
+
+
+def _draw_cursor(draw: ImageDraw.ImageDraw, x: int, y_center: int):
+    """Draw a small filled right-pointing triangle at (x, y_center)."""
+    s = CURSOR_SIZE
+    draw.polygon([
+        (x, y_center - s // 2),
+        (x + s, y_center),
+        (x, y_center + s // 2),
+    ], fill=0)
 
 
 def _title_bar(draw: ImageDraw.ImageDraw, text: str):
@@ -134,7 +145,7 @@ def render_shows(
         text_y = y + (ROW_H - 14) // 2
 
         if is_selected:
-            draw.text((PADDING, text_y), "▸", font=FONT_BODY, fill=0)
+            _draw_cursor(draw, PADDING, text_y + 7)
 
         label = _truncate(show.name, FONT_BODY, max_text_w)
         draw.text((text_x, text_y), label, font=FONT_BODY, fill=0)
@@ -163,7 +174,7 @@ def render_episodes(
         is_selected = (scroll_offset + i) == cursor
 
         if is_selected:
-            draw.text((PADDING, y + 3), "▸", font=FONT_BODY, fill=0)
+            _draw_cursor(draw, PADDING, y + 10)
 
         name = _truncate(ep.name, FONT_BODY, max_text_w)
         draw.text((text_x, y + 3), name, font=FONT_BODY, fill=0)
