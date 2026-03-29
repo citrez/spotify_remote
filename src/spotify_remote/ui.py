@@ -21,11 +21,11 @@ from .spotify_client import Episode, PlaybackState, Show
 W = config.DISPLAY_WIDTH   # 176
 H = config.DISPLAY_HEIGHT  # 264
 
-TITLE_H = 32        # height of the top title bar
+TITLE_H = 28        # height of the top title area (text + separator)
 ROW_H = 28          # height of a show row
 EP_ROW_H = 38       # height of an episode row (name + subtitle)
-ROWS_VISIBLE = (H - TITLE_H) // ROW_H          # 8 show rows (was 5)
-EP_ROWS_VISIBLE = (H - TITLE_H) // EP_ROW_H    # 6 episode rows (was 4)
+ROWS_VISIBLE = (H - TITLE_H) // ROW_H
+EP_ROWS_VISIBLE = (H - TITLE_H) // EP_ROW_H
 
 PADDING = 6
 
@@ -49,6 +49,8 @@ FONT_TITLE = _font(18, bold=True)
 FONT_BODY = _font(12)
 FONT_SMALL = _font(10)
 
+CURSOR_INDENT = int(FONT_BODY.getlength("▸ "))
+
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -58,11 +60,12 @@ def _new_canvas() -> tuple[Image.Image, ImageDraw.ImageDraw]:
 
 
 def _title_bar(draw: ImageDraw.ImageDraw, text: str):
-    draw.rectangle([0, 0, W - 1, TITLE_H - 1], fill=0)
+    """Draw title text centered with a thin separator line underneath."""
     bbox = draw.textbbox((0, 0), text, font=FONT_TITLE)
     text_w = bbox[2] - bbox[0]
     text_h = bbox[3] - bbox[1]
-    draw.text(((W - text_w) // 2, (TITLE_H - text_h) // 2), text, font=FONT_TITLE, fill=1)
+    draw.text(((W - text_w) // 2, (TITLE_H - text_h) // 2 - 2), text, font=FONT_TITLE, fill=0)
+    draw.line([(PADDING, TITLE_H - 1), (W - PADDING, TITLE_H - 1)], fill=0)
 
 
 def _truncate(text: str, font: ImageFont.FreeTypeFont, max_width: int) -> str:
@@ -106,8 +109,6 @@ def render_splash() -> Image.Image:
 
 def render_loading(message: str = "Loading…") -> Image.Image:
     img, draw = _new_canvas()
-    draw.rectangle([0, 0, W - 1, H - 1], outline=0)
-    # Centre the message
     bbox = draw.textbbox((0, 0), message, font=FONT_BODY)
     tw = bbox[2] - bbox[0]
     th = bbox[3] - bbox[1]
@@ -123,21 +124,21 @@ def render_shows(
     img, draw = _new_canvas()
     _title_bar(draw, "Podcasts")
 
+    text_x = PADDING + CURSOR_INDENT
+    max_text_w = W - text_x - PADDING - 6
+
     visible = shows[scroll_offset: scroll_offset + ROWS_VISIBLE]
     for i, show in enumerate(visible):
         y = TITLE_H + i * ROW_H
         is_selected = (scroll_offset + i) == cursor
+        text_y = y + (ROW_H - 14) // 2
 
         if is_selected:
-            draw.rectangle([0, y, W - 1, y + ROW_H - 2], fill=0)
-            text_fill = 1
-        else:
-            text_fill = 0
+            draw.text((PADDING, text_y), "▸", font=FONT_BODY, fill=0)
 
-        label = _truncate(show.name, FONT_BODY, W - PADDING * 2)
-        draw.text((PADDING, y + (ROW_H - 14) // 2), label, font=FONT_BODY, fill=text_fill)
+        label = _truncate(show.name, FONT_BODY, max_text_w)
+        draw.text((text_x, text_y), label, font=FONT_BODY, fill=0)
 
-    # Scroll indicator
     if len(shows) > ROWS_VISIBLE:
         _draw_scrollbar(draw, len(shows), scroll_offset, ROWS_VISIBLE)
 
@@ -153,22 +154,22 @@ def render_episodes(
     img, draw = _new_canvas()
     _title_bar(draw, _truncate(show_name, FONT_TITLE, W - PADDING * 2))
 
+    text_x = PADDING + CURSOR_INDENT
+    max_text_w = W - text_x - PADDING - 6
+
     visible = episodes[scroll_offset: scroll_offset + EP_ROWS_VISIBLE]
     for i, ep in enumerate(visible):
         y = TITLE_H + i * EP_ROW_H
         is_selected = (scroll_offset + i) == cursor
 
         if is_selected:
-            draw.rectangle([0, y, W - 1, y + EP_ROW_H - 2], fill=0)
-            text_fill = 1
-        else:
-            text_fill = 0
+            draw.text((PADDING, y + 3), "▸", font=FONT_BODY, fill=0)
 
-        name = _truncate(ep.name, FONT_BODY, W - PADDING * 2)
-        draw.text((PADDING, y + 3), name, font=FONT_BODY, fill=text_fill)
+        name = _truncate(ep.name, FONT_BODY, max_text_w)
+        draw.text((text_x, y + 3), name, font=FONT_BODY, fill=0)
 
         subtitle = f"{_format_date(ep.release_date)}  ·  {_format_duration(ep.duration_ms)}"
-        draw.text((PADDING, y + 18), subtitle, font=FONT_SMALL, fill=text_fill)
+        draw.text((text_x, y + 18), subtitle, font=FONT_SMALL, fill=0)
 
     if len(episodes) > EP_ROWS_VISIBLE:
         _draw_scrollbar(draw, len(episodes), scroll_offset, EP_ROWS_VISIBLE)
@@ -176,42 +177,19 @@ def render_episodes(
     return img
 
 
-CTRL_H = 42   # height of the controls bar at the bottom of the player screen
-
-
-def _draw_player_controls(draw: ImageDraw.ImageDraw, is_playing: bool):
-    """Draw play/pause control across the bottom CTRL_H pixels of the screen."""
-    ctrl_y = H - CTRL_H
-    draw.line([(0, ctrl_y - 1), (W - 1, ctrl_y - 1)], fill=0)
-
-    label = "|| Pause" if is_playing else "> Play"
-    label_bbox = draw.textbbox((0, 0), label, font=FONT_BODY)
-    label_w = label_bbox[2] - label_bbox[0]
-    label_h = label_bbox[3] - label_bbox[1]
-    x = (W - label_w) // 2
-    y = ctrl_y + (CTRL_H - label_h) // 2
-    draw.text((x, y), label, font=FONT_BODY, fill=0)
-
-
 def render_player(playback: Optional[PlaybackState]) -> Image.Image:
     img, draw = _new_canvas()
 
     if playback is None:
-        _title_bar(draw, "Now Playing")
-        draw.text((PADDING, 50), "No active playback.", font=FONT_BODY, fill=0)
-        draw.text((PADDING, 68), "Start playing on a Spotify", font=FONT_SMALL, fill=0)
-        draw.text((PADDING, 82), "device, then press SELECT.", font=FONT_SMALL, fill=0)
+        draw.text((PADDING, H // 2 - 16), "No active playback.", font=FONT_BODY, fill=0)
+        draw.text((PADDING, H // 2), "Start playing on a Spotify", font=FONT_SMALL, fill=0)
+        draw.text((PADDING, H // 2 + 14), "device, then press SELECT.", font=FONT_SMALL, fill=0)
         return img
 
-    _title_bar(draw, "Now Playing")
-
-    # Status line
-    status = "> Playing" if playback.is_playing else "|| Paused"
-    draw.text((PADDING, TITLE_H + 4), status, font=FONT_SMALL, fill=0)
-
-    # Show name
-    show = _truncate(playback.show_name, FONT_BODY, W - PADDING * 2)
-    draw.text((PADDING, TITLE_H + 18), show, font=FONT_BODY, fill=0)
+    # Show name as header with separator
+    show = _truncate(playback.show_name, FONT_TITLE, W - PADDING * 2)
+    draw.text((PADDING, 8), show, font=FONT_TITLE, fill=0)
+    draw.line([(PADDING, 30), (W - PADDING, 30)], fill=0)
 
     # Episode name (may wrap to 2 lines)
     ep_max_w = W - PADDING * 2
@@ -223,30 +201,26 @@ def render_player(playback: Optional[PlaybackState]) -> Image.Image:
     else:
         lines = [ep_text]
 
-    y = TITLE_H + 36
+    y = 40
     for line in lines:
         draw.text((PADDING, y), line, font=FONT_SMALL, fill=0)
-        y += 13
+        y += 14
 
-    # Progress bar
-    bar_y = H - CTRL_H - 30
-    elapsed = _format_duration(playback.progress_ms)
-    total = _format_duration(playback.duration_ms)
-    draw.text((PADDING, bar_y), f"{elapsed} / {total}", font=FONT_SMALL, fill=0)
-
-    bar_top = bar_y + 14
-    bar_bot = bar_top + 10
+    # Progress — time text and thin bar at bottom
     bar_left = PADDING
     bar_right = W - PADDING
+    bar_y = H - 24
 
-    draw.rectangle([bar_left, bar_top, bar_right, bar_bot], outline=0)
+    elapsed = _format_duration(playback.progress_ms)
+    total = _format_duration(playback.duration_ms)
+    draw.text((PADDING, bar_y - 16), f"{elapsed} / {total}", font=FONT_SMALL, fill=0)
+
+    # Thin 4px progress bar (outline for track, solid fill for progress)
+    draw.rectangle([bar_left, bar_y, bar_right, bar_y + 4], outline=0)
     if playback.duration_ms > 0:
-        fill_w = int((bar_right - bar_left - 2) * playback.progress_ms / playback.duration_ms)
+        fill_w = int((bar_right - bar_left) * playback.progress_ms / playback.duration_ms)
         if fill_w > 0:
-            draw.rectangle([bar_left + 1, bar_top + 1, bar_left + 1 + fill_w, bar_bot - 1], fill=0)
-
-    # Control buttons
-    _draw_player_controls(draw, playback.is_playing)
+            draw.rectangle([bar_left, bar_y, bar_left + fill_w, bar_y + 4], fill=0)
 
     return img
 
@@ -264,9 +238,7 @@ def _draw_scrollbar(
     sb_bot = H - 2
     sb_h = sb_bot - sb_top
 
-    draw.rectangle([sb_x, sb_top, sb_x + 2, sb_bot], outline=0)
-
-    thumb_h = max(6, sb_h * visible // total)
+    thumb_h = max(8, sb_h * visible // total)
     thumb_top = sb_top + (sb_h - thumb_h) * offset // max(1, total - visible)
     draw.rectangle([sb_x, thumb_top, sb_x + 2, thumb_top + thumb_h], fill=0)
 

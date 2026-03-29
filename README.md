@@ -24,55 +24,49 @@ Displays the application logo on startup for 3 seconds, then automatically trans
 
 ### Shows
 
-Browse your saved Spotify podcasts (up to 50, audiobooks excluded). Shows up to 5 rows at a time with a scrollbar when the list is longer. The selected row is highlighted with inverted colors.
+Browse your saved Spotify podcasts (up to 50, audiobooks excluded). Shows up to 8 rows at a time with a scrollbar when the list is longer. The selected row is marked with a ▸ cursor.
 
 ```
-┌─────────────────────────────────────┐
-│  Podcasts                           │  ← title bar
-├─────────────────────────────────────┤
-│  Hardcore History                   │
-│  ▶ The Daily                        │  ← selected
-│  Huberman Lab                       │
-│  Lex Fridman Podcast                │
-│  Radiolab                           │
-└─────────────────────────────────────┘
+    Podcasts
+─────────────────────────
+  Hardcore History
+▸ The Daily                ← selected
+  Huberman Lab
+  Lex Fridman Podcast
+  Radiolab
 ```
 
 ### Episodes
 
-Lists the 20 most recent episodes for the selected podcast. Shows up to 4 rows at a time. Each row displays the episode name (up to 2 lines) plus the release date and duration.
+Lists the 20 most recent episodes for the selected podcast. Shows up to 6 rows at a time. Each row displays the episode name plus the release date and duration.
 
 ```
-┌─────────────────────────────────────┐
-│  Hardcore History                   │  ← show name
-├─────────────────────────────────────┤
-│  Ep 67 - Supernova in the East      │
-│  Mar 15  ·  6h 04m                  │
-├─────────────────────────────────────┤
-│  ▶ Ep 66 - Celtic Holocaust         │  ← selected
-│  Jan 02  ·  5h 41m                  │
-├─────────────────────────────────────┤
-│  Ep 65 - The Destroyer of Worlds    │
-│  Nov 20  ·  3h 58m                  │
-└─────────────────────────────────────┘
+    Hardcore History
+─────────────────────────
+  Ep 67 - Supernova in…
+  Mar 15  ·  6h 04m
+
+▸ Ep 66 - Celtic Holocaust   ← selected
+  Jan 02  ·  5h 41m
+
+  Ep 65 - The Destroyer…
+  Nov 20  ·  3h 58m
 ```
 
 ### Now Playing
 
-Shows the currently playing episode with playback controls and progress. Auto-refreshes every 10 seconds. If no device is active, displays a message prompting you to start playback on a Spotify device.
+Shows the currently playing episode with progress. Auto-refreshes every 10 seconds. If no device is active, displays a message prompting you to start playback on a Spotify device.
 
 ```
-┌─────────────────────────────────────┐
-│  Now Playing                        │  ← title bar
-│  ▶  Playing                         │
-│  Hardcore History                   │
-│  Ep 67 - Supernova in the East      │
-│                                     │
-│  1h 12m / 6h 04m                    │
-│  [████████░░░░░░░░░░░░░░░░░░░░░░]   │
-├─────────────────────────────────────┤
-│            ⏸  Pause                 │
-└─────────────────────────────────────┘
+Hardcore History
+─────────────────────────
+Ep 67 - Supernova in
+the East
+
+
+
+1h 12m / 6h 04m
+━━━━━━━━░░░░░░░░░░░░░░
 ```
 
 ### Loading
