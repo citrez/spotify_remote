@@ -20,7 +20,7 @@ stop_app() {
 }
 
 has_remote_update() {
-    git fetch origin main --quiet 2>/dev/null
+    git fetch origin --quiet 2>/dev/null
     LOCAL=$(git rev-parse HEAD)
     REMOTE=$(git rev-parse origin/main)
     [ "$LOCAL" != "$REMOTE" ]

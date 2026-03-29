@@ -85,10 +85,6 @@ class App:
                     self._go_to_shows()
                 elif action == SELECT:
                     self._toggle_playback()
-                elif action == UP:
-                    self._skip_track("previous")
-                elif action == DOWN:
-                    self._skip_track("next")
 
     def _handle_list_action(self, action: str, total: int, on_select):
         s = self._state
@@ -182,23 +178,6 @@ class App:
             self._refresh_player()
 
         threading.Thread(target=toggle, daemon=True).start()
-
-    def _skip_track(self, direction: str):
-        """Skip to the next or previous track, then refresh the player."""
-        self._cancel_player_refresh()
-
-        def skip():
-            try:
-                if direction == "next":
-                    self._spotify.next_track()
-                else:
-                    self._spotify.previous_track()
-            except Exception as e:
-                print(f"[skip] {direction} failed: {e}")
-            time.sleep(2)
-            self._refresh_player()
-
-        threading.Thread(target=skip, daemon=True).start()
 
     def _wait_for_playback(self, retries: int = 8, interval: float = 2.0):
         """Poll until Spotify reports active playback, then show the player."""

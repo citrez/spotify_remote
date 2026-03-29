@@ -177,34 +177,17 @@ CTRL_H = 42   # height of the controls bar at the bottom of the player screen
 
 
 def _draw_player_controls(draw: ImageDraw.ImageDraw, is_playing: bool):
-    """Draw a 3-button control row across the bottom CTRL_H pixels of the screen."""
+    """Draw play/pause control across the bottom CTRL_H pixels of the screen."""
     ctrl_y = H - CTRL_H
     draw.line([(0, ctrl_y - 1), (W - 1, ctrl_y - 1)], fill=0)
 
-    section_w = W // 3  # ~58 px each
-
-    play_icon = "⏸" if is_playing else "▶"
-    play_label = "Pause" if is_playing else "Play"
-    sections = [
-        ("◀", "Prev"),
-        (play_icon, play_label),
-        ("▶", "Next"),
-    ]
-
-    for i, (icon, label) in enumerate(sections):
-        x_start = i * section_w
-        x_center = x_start + section_w // 2
-
-        if i > 0:
-            draw.line([(x_start, ctrl_y), (x_start, H - 1)], fill=0)
-
-        icon_bbox = draw.textbbox((0, 0), icon, font=FONT_BODY)
-        icon_w = icon_bbox[2] - icon_bbox[0]
-        draw.text((x_center - icon_w // 2, ctrl_y + 4), icon, font=FONT_BODY, fill=0)
-
-        label_bbox = draw.textbbox((0, 0), label, font=FONT_SMALL)
-        label_w = label_bbox[2] - label_bbox[0]
-        draw.text((x_center - label_w // 2, ctrl_y + 22), label, font=FONT_SMALL, fill=0)
+    label = "|| Pause" if is_playing else "> Play"
+    label_bbox = draw.textbbox((0, 0), label, font=FONT_BODY)
+    label_w = label_bbox[2] - label_bbox[0]
+    label_h = label_bbox[3] - label_bbox[1]
+    x = (W - label_w) // 2
+    y = ctrl_y + (CTRL_H - label_h) // 2
+    draw.text((x, y), label, font=FONT_BODY, fill=0)
 
 
 def render_player(playback: Optional[PlaybackState]) -> Image.Image:
@@ -220,7 +203,7 @@ def render_player(playback: Optional[PlaybackState]) -> Image.Image:
     _title_bar(draw, "Now Playing")
 
     # Status line
-    status = "▶  Playing" if playback.is_playing else "⏸  Paused"
+    status = "> Playing" if playback.is_playing else "|| Paused"
     draw.text((PADDING, TITLE_H + 4), status, font=FONT_SMALL, fill=0)
 
     # Show name

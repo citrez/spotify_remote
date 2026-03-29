@@ -70,10 +70,9 @@ Shows the currently playing episode with playback controls and progress. Auto-re
 │                                     │
 │  1h 12m / 6h 04m                    │
 │  [████████░░░░░░░░░░░░░░░░░░░░░░]   │
-├──────────────┬──────────┬───────────┤
-│      ◀       │    ⏸     │     ▶     │
-│     Prev     │  Pause   │   Next    │
-└──────────────┴──────────┴───────────┘
+├─────────────────────────────────────┤
+│            ⏸  Pause                 │
+└─────────────────────────────────────┘
 ```
 
 ### Loading
@@ -86,10 +85,10 @@ A transient screen with centered text (e.g. "Loading…") shown while fetching d
 
 | Button | GPIO (BCM) | Shows / Episodes | Now Playing |
 |---|---|---|---|
-| KEY1 | 5 | Move cursor up | Previous track |
-| KEY2 | 6 | Move cursor down | Next track |
+| KEY1 | 5 | Move cursor up | — |
+| KEY2 | 6 | Move cursor down | — |
 | KEY3 | 13 | Select / confirm | Play / Pause |
-| KEY4 | 19 | Back | Back to episodes |
+| KEY4 | 19 | Back | Back to shows |
 
 ---
 
