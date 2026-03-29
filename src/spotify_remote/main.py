@@ -84,8 +84,11 @@ class App:
                     self._cancel_player_refresh()
                     self._go_to_shows()
                 elif action == SELECT:
-                    self._spotify.toggle_playback()
-                    self._refresh_player()
+                    self._toggle_playback()
+                elif action == UP:
+                    self._skip_track("previous")
+                elif action == DOWN:
+                    self._skip_track("next")
 
     def _handle_list_action(self, action: str, total: int, on_select):
         s = self._state
@@ -165,6 +168,20 @@ class App:
         threading.Thread(target=play, daemon=True).start()
 
     # ── Player refresh ────────────────────────────────────────────────────────
+
+    def _toggle_playback(self):
+        """Toggle play/pause in a background thread to avoid holding the lock during network calls."""
+        self._cancel_player_refresh()
+
+        def toggle():
+            try:
+                self._spotify.toggle_playback()
+            except Exception as e:
+                print(f"[player] toggle failed: {e}")
+            time.sleep(1)
+            self._refresh_player()
+
+        threading.Thread(target=toggle, daemon=True).start()
 
     def _skip_track(self, direction: str):
         """Skip to the next or previous track, then refresh the player."""
