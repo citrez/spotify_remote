@@ -48,6 +48,7 @@ while true; do
         echo "[run_loop] Update detected, pulling and restarting..."
         stop_app
         git pull
-        start_app
+        echo "[run_loop] Re-executing run_loop.sh to pick up any script changes..."
+        exec "$0" "$@"
     fi
 done
